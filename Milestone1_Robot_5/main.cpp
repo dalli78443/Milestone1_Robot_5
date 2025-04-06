@@ -6,18 +6,34 @@
 #include "pktDef.h"
 
 int main() {
+    // Create a new packet
     PktDef pkt;
+    
+    // Set packet properties
     pkt.SetPktCount(1);
-    pkt.SetCmd(true, false, false, false); // Set DRIVE only
-    pkt.SetDriveData(0x01, 0x05, 0x64);    // Direction=1, Duration=5, Speed=100
-    pkt.BuildPacket();
-
-    auto packet = pkt.GetPacket();
+    pkt.SetCmd(CmdType::DRIVE);  // Set DRIVE command
+    
+    // Create drive command data
+    char driveData[3] = { FORWARD, 5, 85 };  // Direction=FORWARD, Duration=5, Speed=85%
+    pkt.SetBodyData(driveData, 3);
+    
+    // Calculate CRC and generate packet
+    pkt.CalcCRC();
+    char* rawPacket = pkt.GenPacket();
+    
+    // Print the packet contents
     std::cout << "Built packet: ";
-    for (auto b : packet) {
-        printf("0x%02X ", b);
+    for (int i = 0; i < pkt.GetLength(); i++) {
+        printf("0x%02X ", (unsigned char)rawPacket[i]);
     }
     std::cout << std::endl;
+    
+    // Verify CRC
+    if (pkt.CheckCRC(rawPacket, pkt.GetLength())) {
+        std::cout << "CRC check passed" << std::endl;
+    } else {
+        std::cout << "CRC check failed" << std::endl;
+    }
 
     return 0;
 }

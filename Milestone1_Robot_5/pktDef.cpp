@@ -3,96 +3,162 @@
 // Robot_5
 // PktDef.cpp
 #include "pktDef.h"
+#include <cstring>
 
-// Constructor
-PktDef::PktDef()
-    : PktCount(0), CmdFlags(0), Length(0), CRC(0) {
-    ClearData();
+// Default constructor
+PktDef::PktDef() {
+    packet.header.PktCount = 0;
+    packet.header.Command.Drive = 0;
+    packet.header.Command.Status = 0;
+    packet.header.Command.Sleep = 0;
+    packet.header.Command.Ack = 0;
+    packet.header.Command.Padding = 0;
+    packet.header.Length = 0;
+    packet.Data = nullptr;
+    packet.CRC = 0;
+    RawBuffer = nullptr;
 }
 
-// Set the packet count
-void PktDef::SetPktCount(unsigned short count) {
-    PktCount = count;
-}
+// Constructor with raw data
+PktDef::PktDef(char* rawData) {
+    // Copy header
+    memcpy(&packet.header, rawData, HEADERSIZE);
 
-// Set the command flags (bit-wise logic)
-void PktDef::SetCmd(bool drive, bool status, bool sleep, bool ack) {
-    CmdFlags = 0;
-    if (drive)  CmdFlags |= DRIVE;
-    if (status) CmdFlags |= STATUS;
-    if (sleep)  CmdFlags |= SLEEP;
-    if (ack)    CmdFlags |= ACK;
-}
-
-// Helper to reset data
-void PktDef::ClearData() {
-    Data.clear();
-    Length = 0;
-    CRC = 0;
-    PacketBytes.clear();
-}
-// Set drive parameters (for Drive commands only)
-void PktDef::SetDriveData(unsigned char direction, unsigned char duration, unsigned char speed) {
-    if (!(CmdFlags & DRIVE)) return; // Only set if Drive flag is active
-
-    Data.clear();
-    Data.push_back(direction);
-    Data.push_back(duration);
-    Data.push_back(speed);
-
-    Length = static_cast<unsigned short>(Data.size() + 6); // 6 bytes = header(4) + length(1) + CRC(1)
-}
-
-// Build packet byte-by-byte
-void PktDef::BuildPacket() {
-    PacketBytes.clear();
-
-    // Header
-    PacketBytes.push_back(PktCount & 0xFF);          // Low byte
-    PacketBytes.push_back((PktCount >> 8) & 0xFF);   // High byte
-    PacketBytes.push_back(CmdFlags);                 // CmdFlags
-    PacketBytes.push_back(static_cast<unsigned char>(Length)); // Length
-
-    // Body
-    for (auto b : Data) {
-        PacketBytes.push_back(b);
+    // Allocate and copy body data if length > 0
+    if (packet.header.Length > HEADERSIZE + 1) { // +1 for CRC
+        int bodySize = packet.header.Length - HEADERSIZE - 1;
+        packet.Data = new char[bodySize];
+        memcpy(packet.Data, rawData + HEADERSIZE, bodySize);
+    }
+    else {
+        packet.Data = nullptr;
     }
 
-    // CRC
-    CRC = CalcCRC(PacketBytes); // Only on everything before CRC
-    PacketBytes.push_back(CRC); // Append to end
+    // Copy CRC
+    packet.CRC = rawData[packet.header.Length - 1];
+    RawBuffer = nullptr;
 }
-unsigned char PktDef::CalcCRC(const std::vector<unsigned char>& data) {
-    unsigned char crc = 0;
-    for (unsigned char byte : data) {
-        for (int i = 0; i < 8; ++i) {
-            if (byte & (1 << i)) crc++;
+
+// Destructor
+PktDef::~PktDef() {
+    delete[] packet.Data;
+    delete[] RawBuffer;
+}
+
+void PktDef::SetCmd(CmdType cmd) {
+    packet.header.Command.Drive = 0;
+    packet.header.Command.Status = 0;
+    packet.header.Command.Sleep = 0;
+
+    // Clear any existing body data for SLEEP and RESPONSE commands
+    if (cmd == CmdType::SLEEP || cmd == CmdType::RESPONSE) {
+        delete[] packet.Data;
+        packet.Data = nullptr;
+        packet.header.Length = HEADERSIZE + 1;  // Header + CRC only
+    }
+
+    switch (cmd) {
+    case CmdType::DRIVE:
+        packet.header.Command.Drive = 1;
+        break;
+    case CmdType::SLEEP:
+        packet.header.Command.Sleep = 1;
+        break;
+    case CmdType::RESPONSE:
+        packet.header.Command.Status = 1;
+        break;
+    }
+}
+
+void PktDef::SetBodyData(char* data, int size) {
+    delete[] packet.Data;
+    packet.Data = new char[size];
+    memcpy(packet.Data, data, size);
+    packet.header.Length = HEADERSIZE + size + 1; // +1 for CRC
+}
+
+void PktDef::SetPktCount(int count) {
+    packet.header.PktCount = count;
+}
+
+CmdType PktDef::GetCmd() {
+    if (packet.header.Command.Drive) return CmdType::DRIVE;
+    if (packet.header.Command.Sleep) return CmdType::SLEEP;
+    if (packet.header.Command.Status) return CmdType::RESPONSE;
+    return CmdType::DRIVE; // Default case
+}
+
+bool PktDef::GetAck() {
+    return packet.header.Command.Ack == 1;
+}
+
+int PktDef::GetLength() {
+    return packet.header.Length;
+}
+
+char* PktDef::GetBodyData() {
+    return packet.Data;
+}
+
+int PktDef::GetPktCount() {
+    return packet.header.PktCount;
+}
+
+bool PktDef::CheckCRC(char* data, int size) {
+    char calculatedCRC = 0;
+    for (int i = 0; i < size - 1; i++) { // -1 to exclude CRC byte
+        for (int bit = 0; bit < 8; bit++) {
+            if (data[i] & (1 << bit)) {
+                calculatedCRC++;
+            }
         }
     }
-    return crc;
+    return calculatedCRC == data[size - 1];
 }
 
+void PktDef::CalcCRC() {
+    char calculatedCRC = 0;
 
-unsigned short PktDef::GetPktCount() const {
-    return PktCount;
+    // Count bits in header
+    unsigned char* headerBytes = (unsigned char*)&packet.header;
+    for (int i = 0; i < HEADERSIZE; i++) {
+        for (int bit = 0; bit < 8; bit++) {
+            if (headerBytes[i] & (1 << bit)) {
+                calculatedCRC++;
+            }
+        }
+    }
+
+    // Count bits in body if exists
+    if (packet.Data != nullptr) {
+        int bodySize = packet.header.Length - HEADERSIZE - 1;
+        for (int i = 0; i < bodySize; i++) {
+            for (int bit = 0; bit < 8; bit++) {
+                if (packet.Data[i] & (1 << bit)) {
+                    calculatedCRC++;
+                }
+            }
+        }
+    }
+
+    packet.CRC = calculatedCRC;
 }
 
-unsigned char PktDef::GetCmdFlags() const {
-    return CmdFlags;
-}
+char* PktDef::GenPacket() {
+    delete[] RawBuffer;
+    RawBuffer = new char[packet.header.Length];
 
-unsigned short PktDef::GetLength() const {
-    return Length;
-}
+    // Copy header
+    memcpy(RawBuffer, &packet.header, HEADERSIZE);
 
-std::vector<unsigned char> PktDef::GetData() const {
-    return Data;
-}
+    // Copy body if exists
+    if (packet.Data != nullptr) {
+        int bodySize = packet.header.Length - HEADERSIZE - 1;
+        memcpy(RawBuffer + HEADERSIZE, packet.Data, bodySize);
+    }
 
-unsigned char PktDef::GetCRC() const {
-    return CRC;
-}
+    // Copy CRC
+    RawBuffer[packet.header.Length - 1] = packet.CRC;
 
-std::vector<unsigned char> PktDef::GetPacket() const {
-    return PacketBytes;
+    return RawBuffer;
 }
