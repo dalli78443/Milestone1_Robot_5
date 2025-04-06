@@ -46,6 +46,7 @@ PktDef::~PktDef() {
 }
 
 void PktDef::SetCmd(CmdType cmd) {
+    // Clear all command flags first
     packet.header.Command.Drive = 0;
     packet.header.Command.Status = 0;
     packet.header.Command.Sleep = 0;
@@ -68,6 +69,32 @@ void PktDef::SetCmd(CmdType cmd) {
         packet.header.Command.Status = 1;
         break;
     }
+}
+
+void PktDef::SetAck(bool isAck) {
+    packet.header.Command.Ack = isAck ? 1 : 0;
+}
+
+void PktDef::SetTelemetryData(unsigned short lastPktCounter, unsigned short currentGrade,
+                             unsigned short hitCount, unsigned char lastCmd,
+                             unsigned char lastCmdValue, unsigned char lastCmdSpeed) {
+    // Create and fill telemetry structure
+    TelemetryBody telemetry;
+    telemetry.LastPktCounter = lastPktCounter;
+    telemetry.CurrentGrade = currentGrade;
+    telemetry.HitCount = hitCount;
+    telemetry.LastCmd = lastCmd;
+    telemetry.LastCmdValue = lastCmdValue;
+    telemetry.LastCmdSpeed = lastCmdSpeed;
+
+    // Set command type to RESPONSE
+    SetCmd(CmdType::RESPONSE);
+
+    // Copy telemetry data to packet body
+    delete[] packet.Data;
+    packet.Data = new char[sizeof(TelemetryBody)];
+    memcpy(packet.Data, &telemetry, sizeof(TelemetryBody));
+    packet.header.Length = HEADERSIZE + sizeof(TelemetryBody) + 1; // +1 for CRC
 }
 
 void PktDef::SetBodyData(char* data, int size) {
@@ -161,4 +188,82 @@ char* PktDef::GenPacket() {
     RawBuffer[packet.header.Length - 1] = packet.CRC;
 
     return RawBuffer;
+}
+
+void PktDef::SetDriveParams(unsigned char direction, unsigned char duration, unsigned char speed) {
+    // Validate direction
+    if (direction != FORWARD && direction != BACKWARD && 
+        direction != RIGHT && direction != LEFT) {
+        return; // Invalid direction
+    }
+
+    // Validate speed (must be between 80-100%)
+    if (speed < 80 || speed > 100) {
+        return; // Invalid speed
+    }
+
+    // Set command type to DRIVE
+    SetCmd(CmdType::DRIVE);
+
+    // Create drive body structure
+    DriveBody driveBody;
+    driveBody.Direction = direction;
+    driveBody.Duration = duration;
+    driveBody.Speed = speed;
+
+    // Copy drive body to packet data
+    delete[] packet.Data;
+    packet.Data = new char[sizeof(DriveBody)];
+    memcpy(packet.Data, &driveBody, sizeof(DriveBody));
+    packet.header.Length = HEADERSIZE + sizeof(DriveBody) + 1; // +1 for CRC
+}
+
+
+
+PktDef::DriveBody PktDef::GetDriveParams() {
+    DriveBody driveBody = { 0, 0, 0 }; // Initialize to zeros
+
+    if (packet.Data == nullptr || GetCmd() != CmdType::DRIVE) {
+        return driveBody;
+    }
+
+    memcpy(&driveBody, packet.Data, sizeof(DriveBody));
+    return driveBody;
+}
+
+PktDef::TelemetryBody PktDef::GetTelemetry() {
+    TelemetryBody telemetry = { 0, 0, 0, 0, 0, 0 }; // Initialize to zeros
+
+    if (packet.Data == nullptr || GetCmd() != CmdType::RESPONSE) {
+        return telemetry;
+    }
+
+    memcpy(&telemetry, packet.Data, sizeof(TelemetryBody));
+    return telemetry;
+}
+
+bool PktDef::ValidateCmd() const {
+    // Count how many command flags are set (excluding Ack)
+    int cmdCount = 0;
+    if (packet.header.Command.Drive) cmdCount++;
+    if (packet.header.Command.Status) cmdCount++;
+    if (packet.header.Command.Sleep) cmdCount++;
+
+    // Check that only one command flag is set at a time
+    if (cmdCount > 1) {
+        return false;
+    }
+
+    // Check that at least one command flag is set
+    if (cmdCount == 0) {
+        return false;
+    }
+
+    // If Ack is set, verify it's set with a corresponding command flag
+    if (packet.header.Command.Ack) {
+        // At least one command flag must be set with Ack
+        return cmdCount == 1;
+    }
+
+    return true;
 }

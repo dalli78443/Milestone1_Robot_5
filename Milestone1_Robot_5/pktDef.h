@@ -22,6 +22,24 @@ const int LEFT = 4;
 const int HEADERSIZE = 4;
 
 class PktDef {
+public:
+    // Drive command body structure
+    struct DriveBody {
+        unsigned char Direction;
+        unsigned char Duration;
+        unsigned char Speed;
+    };
+
+    // Telemetry body structure
+    struct TelemetryBody {
+        unsigned short LastPktCounter;
+        unsigned short CurrentGrade;
+        unsigned short HitCount;
+        unsigned char LastCmd;
+        unsigned char LastCmdValue;
+        unsigned char LastCmdSpeed;
+    };
+
 private:
     // Header structure
     struct Header {
@@ -34,13 +52,6 @@ private:
             unsigned char Padding : 4;
         } Command;
         unsigned char Length;
-    };
-
-    // Drive command body structure
-    struct DriveBody {
-        unsigned char Direction;
-        unsigned char Duration;
-        unsigned char Speed;
     };
 
     // Command packet structure
@@ -62,6 +73,11 @@ public:
     void SetCmd(CmdType cmd);
     void SetBodyData(char* data, int size);
     void SetPktCount(int count);
+    void SetAck(bool isAck);
+    void SetTelemetryData(unsigned short lastPktCounter, unsigned short currentGrade,
+                         unsigned short hitCount, unsigned char lastCmd,
+                         unsigned char lastCmdValue, unsigned char lastCmdSpeed);
+    void SetDriveParams(unsigned char direction, unsigned char duration, unsigned char speed);
 
     // Get functions
     CmdType GetCmd();
@@ -69,6 +85,13 @@ public:
     int GetLength();
     char* GetBodyData();
     int GetPktCount();
+
+    // Structure get functions
+    DriveBody GetDriveParams();
+    TelemetryBody GetTelemetry();
+
+    // Validation function
+    bool ValidateCmd() const;
 
     // CRC functions
     bool CheckCRC(char* data, int size);

@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "../Milestone1_Robot_5/pktDef.cpp"
 #include "../Milestone1_Robot_5/pktDef.h"
+#include "../Milestone1_Robot_5/pktDef.cpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace pktDefTest
@@ -223,6 +223,110 @@ namespace pktDefTest
 			char driveData[3] = { FORWARD, 5, 85 };
 			packet.SetBodyData(driveData, 3);
 			Assert::AreEqual(HEADERSIZE + 3 + 1, (int)packet.GetLength());
+		}
+
+		TEST_METHOD(TestAcknowledgement)
+		{
+			PktDef packet;
+			
+			// Test DRIVE command acknowledgement
+			packet.SetCmd(CmdType::DRIVE);
+			packet.SetAck(true);
+			Assert::IsTrue(packet.GetCmd() == CmdType::DRIVE);
+			Assert::IsTrue(packet.GetAck());
+			
+			// Test SLEEP command acknowledgement
+			packet.SetCmd(CmdType::SLEEP);
+			packet.SetAck(true);
+			Assert::IsTrue(packet.GetCmd() == CmdType::SLEEP);
+			Assert::IsTrue(packet.GetAck());
+			
+			// Test RESPONSE command acknowledgement
+			packet.SetCmd(CmdType::RESPONSE);
+			packet.SetAck(true);
+			Assert::IsTrue(packet.GetCmd() == CmdType::RESPONSE);
+			Assert::IsTrue(packet.GetAck());
+		}
+
+		
+
+
+		TEST_METHOD(TestNegativeAcknowledgement)
+		{
+			PktDef packet;
+			packet.SetCmd(CmdType::RESPONSE);
+			packet.SetAck(false);  // This makes it a NACK
+			
+			Assert::IsTrue(packet.GetCmd() == CmdType::RESPONSE);
+			Assert::IsFalse(packet.GetAck());
+			Assert::AreEqual(HEADERSIZE + 1, (int)packet.GetLength());  // Header + CRC only
+		}
+
+
+		TEST_METHOD(TestDriveParamGetters)
+		{
+			PktDef packet;
+			
+			// Test with valid drive parameters
+			packet.SetDriveParams(FORWARD, 5, 85);
+			PktDef::DriveBody driveParams = packet.GetDriveParams();
+			Assert::AreEqual((int)FORWARD, (int)driveParams.Direction);
+			Assert::AreEqual(5, (int)driveParams.Duration);
+			Assert::AreEqual(85, (int)driveParams.Speed);
+			
+			// Test with different values
+			packet.SetDriveParams(BACKWARD, 10, 90);
+			driveParams = packet.GetDriveParams();
+			Assert::AreEqual((int)BACKWARD, (int)driveParams.Direction);
+			Assert::AreEqual(10, (int)driveParams.Duration);
+			Assert::AreEqual(90, (int)driveParams.Speed);
+			
+			// Test with non-drive command
+			packet.SetCmd(CmdType::SLEEP);
+			driveParams = packet.GetDriveParams();
+			Assert::AreEqual(0, (int)driveParams.Direction);
+			Assert::AreEqual(0, (int)driveParams.Duration);
+			Assert::AreEqual(0, (int)driveParams.Speed);
+		}
+
+		TEST_METHOD(TestValidateCmd)
+		{
+			PktDef packet;
+
+			// Test single command flags (should be valid)
+			packet.SetCmd(CmdType::DRIVE);
+			Assert::IsTrue(packet.ValidateCmd());
+
+			packet.SetCmd(CmdType::SLEEP);
+			Assert::IsTrue(packet.ValidateCmd());
+
+			packet.SetCmd(CmdType::RESPONSE);
+			Assert::IsTrue(packet.ValidateCmd());
+
+			// Test Ack with single command (should be valid)
+			packet.SetCmd(CmdType::DRIVE);
+			packet.SetAck(true);
+			Assert::IsTrue(packet.ValidateCmd());
+
+			packet.SetCmd(CmdType::SLEEP);
+			packet.SetAck(true);
+			Assert::IsTrue(packet.ValidateCmd());
+
+			packet.SetCmd(CmdType::RESPONSE);
+			packet.SetAck(true);
+			Assert::IsTrue(packet.ValidateCmd());
+
+			// Test multiple command flags by directly manipulating the flags
+			// (This is for testing purposes only - normally these would be set through SetCmd)
+			packet = PktDef(); // Reset packet
+			packet.SetCmd(CmdType::DRIVE);
+			packet.SetCmd(CmdType::SLEEP); // This should clear Drive flag
+			Assert::IsTrue(packet.ValidateCmd()); // Should still be valid as SetCmd ensures only one flag
+
+			// Test Ack without any command (should be invalid)
+			packet = PktDef(); // Reset packet
+			packet.SetAck(true);
+			Assert::IsFalse(packet.ValidateCmd());
 		}
 	};
 }
