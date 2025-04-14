@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Milestone1_Robot_5", "Miles
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pktDef_Test", "pktDef_Test\pktDef_Test.vcxproj", "{5FE41A0B-8ABA-9C35-2431-5D9A745FC795}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MySocket_Test", "MySocket_Test\MySocket_Test.vcxproj", "{FEAC7B21-4D37-2940-B634-991B2D1E8704}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{5FE41A0B-8ABA-9C35-2431-5D9A745FC795}.Release|x64.Build.0 = Release|x64
 		{5FE41A0B-8ABA-9C35-2431-5D9A745FC795}.Release|x86.ActiveCfg = Release|Win32
 		{5FE41A0B-8ABA-9C35-2431-5D9A745FC795}.Release|x86.Build.0 = Release|Win32
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Debug|x64.ActiveCfg = Debug|x64
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Debug|x64.Build.0 = Debug|x64
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Debug|x86.ActiveCfg = Debug|Win32
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Debug|x86.Build.0 = Debug|Win32
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Release|x64.ActiveCfg = Release|x64
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Release|x64.Build.0 = Release|x64
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Release|x86.ActiveCfg = Release|Win32
+		{FEAC7B21-4D37-2940-B634-991B2D1E8704}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
