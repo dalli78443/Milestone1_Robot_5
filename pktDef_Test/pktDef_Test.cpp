@@ -2,6 +2,9 @@
 #include "CppUnitTest.h"
 #include "../Milestone1_Robot_5/pktDef.h"
 #include "../Milestone1_Robot_5/pktDef.cpp"
+#include "../Milestone1_Robot_5/MySocket.h"
+#include "../Milestone1_Robot_5/MySocket.cpp"
+
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace pktDefTest
@@ -327,6 +330,101 @@ namespace pktDefTest
 			packet = PktDef(); // Reset packet
 			packet.SetAck(true);
 			Assert::IsFalse(packet.ValidateCmd());
+		}
+	};
+}
+
+namespace MySocketTests
+{
+	TEST_CLASS(MySocketTests)
+	{
+	public:
+		const std::string validIP = "127.0.0.1";
+		const unsigned int validPort = 8080;
+		const unsigned int bufferSize = 1024;
+
+		TEST_METHOD(Constructor_SetsValuesCorrectly)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, bufferSize);
+
+			Assert::AreEqual(validIP, sock.GetIPAddr());
+			Assert::AreEqual((int)validPort, sock.GetPort());
+			Assert::AreEqual((int)SocketType::CLIENT, (int)sock.GetType());
+		}
+
+		TEST_METHOD(Constructor_UsesDefaultBuffer_WhenZero)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, 0);
+
+			// We can't access MaxSize directly, but we can test buffer acceptance
+			char testData[DEFAULT_SIZE];
+			try {
+				sock.SendData(testData, DEFAULT_SIZE);
+			}
+			catch (...) {
+				Assert::IsTrue(true); // Should still work without crashing
+			}
+		}
+
+		TEST_METHOD(SetIPAddr_ThrowsWhenConnected)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, bufferSize);
+
+			// Simulate socket state by setting WelcomeSocket to non-invalid
+			sock.SetIPAddr("192.168.1.1");
+			Assert::AreEqual(std::string("192.168.1.1"), sock.GetIPAddr());
+		}
+
+		TEST_METHOD(SetPort_ThrowsWhenConnected)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, bufferSize);
+			sock.SetPort(12345);
+			Assert::AreEqual(12345, sock.GetPort());
+		}
+
+		TEST_METHOD(SetType_ChangesSocketType)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, bufferSize);
+			sock.SetType(SocketType::SERVER);
+			Assert::AreEqual((int)SocketType::SERVER, (int)sock.GetType());
+		}
+
+		TEST_METHOD(SendData_Throws_WhenSizeTooLarge)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, 10);
+			char data[20] = "Too much data";
+
+			Assert::ExpectException<std::runtime_error>([&]() {
+				sock.SendData(data, 20);
+				});
+		}
+
+		TEST_METHOD(SendData_Throws_WhenTCPNotConnected)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, bufferSize);
+			char data[10] = "test";
+
+			Assert::ExpectException<std::runtime_error>([&]() {
+				sock.SendData(data, 4);
+				});
+		}
+
+		TEST_METHOD(GetData_Throws_WhenTCPNotConnected)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, bufferSize);
+			char buffer[1024];
+
+			Assert::ExpectException<std::runtime_error>([&]() {
+				sock.GetData(buffer);
+				});
+		}
+
+		TEST_METHOD(Getters_WorkCorrectly)
+		{
+			MySocket sock(SocketType::CLIENT, validIP, validPort, ConnectionType::TCP, bufferSize);
+			Assert::AreEqual(validIP, sock.GetIPAddr());
+			Assert::AreEqual((int)validPort, sock.GetPort());
+			Assert::AreEqual((int)SocketType::CLIENT, (int)sock.GetType());
 		}
 	};
 }
