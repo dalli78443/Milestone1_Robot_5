@@ -1,0 +1,8 @@
+//server
+cl main.cpp MySocket.cpp /Fe:robot_comm.exe
+
+.\robot_comm -s 27015
+
+
+//client
+.\robot_comm -c <server_ip> 27015
