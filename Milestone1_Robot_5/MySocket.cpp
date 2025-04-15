@@ -247,4 +247,3 @@ void MySocket::ValidateBufferSize(unsigned int& size) {
     }
 }
 
-

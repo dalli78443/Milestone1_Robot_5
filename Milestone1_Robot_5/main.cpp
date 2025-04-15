@@ -2,109 +2,99 @@
 // Adil Farid
 // Robot_5
 // main.cpp
+#include "pktDef.h"
 #include "MySocket.h"
 #include <iostream>
-#include <string>
-#include <cstring>
+#include <winsock2.h>
 
-void printUsage() {
-    std::cout << "Usage:\n"
-              << "  To run as server: program -s [port]\n"
-              << "  To run as client: program -c [server_ip] [port]\n"
-              << "Example:\n"
-              << "  Server: program -s 27015\n"
-              << "  Client: program -c 192.168.1.100 27015\n";
-}
-
-void runServer(int port) {
+int main() {
     try {
-        MySocket server(SocketType::SERVER, "0.0.0.0", port, ConnectionType::TCP);
-        std::cout << "Server initialized on port " << port << ". Waiting for connections..." << std::endl;
+        // Step 1: Setup the socket
+        MySocket client(SocketType::CLIENT, "127.0.0.1", 5000, ConnectionType::UDP, 1024);
+        std::cout << "Connected to robot simulator on port 5000.\n";
 
-        server.ConnectTCP();
-        std::cout << "Client connected!" << std::endl;
+        // Step 2: Create and validate Drive command
+        PktDef pkt;
+        pkt.SetCmd(CmdType::DRIVE);
+        pkt.SetAck(true);
+        pkt.SetPktCount(1);
+        pkt.SetDriveParams(FORWARD, 3, 90); // Explicit values
 
-        char buffer[1024];
-        while (true) {
-            int bytesReceived = server.GetData(buffer);
-            if (bytesReceived > 0) {
-                buffer[bytesReceived] = '\0';
-                std::cout << "Received: " << buffer << std::endl;
-                
-                // Echo back
-                server.SendData(buffer, bytesReceived);
-                std::cout << "Echoed back" << std::endl;
-            }
-            else if (bytesReceived == 0) {
-                std::cout << "Client disconnected" << std::endl;
-                break;
-            }
+        // Debug output
+        PktDef::DriveBody cmd = pkt.GetDriveParams();
+        std::cout << "Command Details:\n"
+            << "Direction: " << (int)cmd.Direction << " ("
+            << (cmd.Direction == FORWARD ? "FORWARD" : "UNKNOWN") << ")\n"
+            << "Duration: " << (int)cmd.Duration << "s\n"
+            << "Speed: " << (int)cmd.Speed << "%\n";
+
+        pkt.CalcCRC();
+        char* buffer = pkt.GenPacket();
+
+        // Print raw packet
+        std::cout << "Raw packet (" << pkt.GetLength() << " bytes): ";
+        for (int i = 0; i < pkt.GetLength(); i++) {
+            printf("%02X ", (unsigned char)buffer[i]);
+        }
+        std::cout << "\n";
+
+        // Step 3: Send command
+        client.SendData(buffer, pkt.GetLength());
+        std::cout << "Command sent.\n";
+
+        // Step 4: Receive response with timeout
+        fd_set readSet;
+        FD_ZERO(&readSet);
+        SOCKET sock = client.GetSocket();
+        FD_SET(sock, &readSet);
+
+        timeval timeout;
+        timeout.tv_sec = 2;  // 2 second timeout
+        timeout.tv_usec = 0;
+
+        char recvBuffer[1024];
+        int selectResult = select(0, &readSet, nullptr, nullptr, &timeout);
+
+        if (selectResult == SOCKET_ERROR) {
+            throw std::runtime_error("Select failed");
+        }
+        else if (selectResult == 0) {
+            std::cout << "Timeout waiting for response.\n";
+            return 1;
         }
 
-        server.DisconnectTCP();
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Server error: " << e.what() << std::endl;
-    }
-}
+        int bytesReceived = client.GetData(recvBuffer);
+        std::cout << "Received " << bytesReceived << " bytes.\n";
 
-void runClient(const std::string& serverIP, int port) {
-    try {
-        MySocket client(SocketType::CLIENT, serverIP, port, ConnectionType::TCP);
-        std::cout << "Client initialized. Connecting to " << serverIP << ":" << port << "..." << std::endl;
-
-        client.ConnectTCP();
-        std::cout << "Connected to server!" << std::endl;
-
-        std::string input;
-        char buffer[1024];
-
-        while (true) {
-            std::cout << "Enter message (or 'quit' to exit): ";
-            std::getline(std::cin, input);
-
-            if (input == "quit") {
-                break;
+        if (bytesReceived > 0) {
+            std::cout << "Response data: ";
+            for (int i = 0; i < bytesReceived; i++) {
+                printf("%02X ", (unsigned char)recvBuffer[i]);
             }
+            std::cout << "\n";
 
-            client.SendData(input.c_str(), input.length() + 1);
-            std::cout << "Sent: " << input << std::endl;
-
-            int bytesReceived = client.GetData(buffer);
-            if (bytesReceived > 0) {
-                buffer[bytesReceived] = '\0';
-                std::cout << "Received: " << buffer << std::endl;
+            try {
+                PktDef response(recvBuffer);
+                if (response.ValidateCmd() && response.CheckCRC(recvBuffer, bytesReceived)) {
+                    if (response.GetAck()) {
+                        std::cout << "Valid ACK received.\n";
+                    }
+                    else {
+                        std::cout << "Response received but not an ACK.\n";
+                    }
+                }
+                else {
+                    std::cout << "Invalid response format.\n";
+                }
+            }
+            catch (...) {
+                std::cout << "Malformed response packet.\n";
             }
         }
-
-        client.DisconnectTCP();
     }
-    catch (const std::exception& e) {
-        std::cerr << "Client error: " << e.what() << std::endl;
-    }
-}
-
-int main(int argc, char* argv[]) {
-    if (argc < 3) {
-        printUsage();
+    catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << "\n";
         return 1;
     }
-
-    if (strcmp(argv[1], "-s") == 0) {
-        // Server mode
-        int port = (argc > 2) ? std::stoi(argv[2]) : 27015;
-        runServer(port);
-    }
-    else if (strcmp(argv[1], "-c") == 0 && argc >= 4) {
-        // Client mode
-        std::string serverIP = argv[2];
-        int port = std::stoi(argv[3]);
-        runClient(serverIP, port);
-    }
-    else {
-        printUsage();
-        return 1;
-    }
-
     return 0;
 }

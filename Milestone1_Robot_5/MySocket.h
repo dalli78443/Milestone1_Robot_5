@@ -62,6 +62,10 @@ public:
 
     SocketType GetType() const;
     void SetType(SocketType type);
+    // In MySocket.h public section:
+    SOCKET GetSocket() const {
+        return ConnectionSocket;
+    }
 
 private:
 
