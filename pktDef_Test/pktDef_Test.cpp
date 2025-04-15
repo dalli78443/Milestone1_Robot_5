@@ -426,5 +426,33 @@ namespace MySocketTests
 			Assert::AreEqual((int)validPort, sock.GetPort());
 			Assert::AreEqual((int)SocketType::CLIENT, (int)sock.GetType());
 		}
+
+		TEST_METHOD(Test_DefaultBufferSize)
+		{
+			// Test to make suer that DEFAULTSIZE is correct
+			Assert::AreEqual(1024, DEFAULT_SIZE);
+		}
+
+		TEST_METHOD(Test_ConnectionTypeEnum)
+		{
+			// Test that makes sure ConnectionType enum has correct values
+			Assert::IsTrue(static_cast<int>(ConnectionType::TCP) != static_cast<int>(ConnectionType::UDP));
+		}
+
+		TEST_METHOD(Test_SocketTypeEnum)
+		{
+			// Test that SocketType enum has right values
+			Assert::IsTrue(static_cast<int>(SocketType::CLIENT) != static_cast<int>(SocketType::SERVER));
+		}
+
+		TEST_METHOD(Test_Constructor_WithMinimalParams)
+		{
+			// Test constructor with minimal parameters (using default buffer size)
+			MySocket sock(SocketType::CLIENT, "127.0.0.1", 8080, ConnectionType::TCP);
+
+			
+			Assert::AreEqual(std::string("127.0.0.1"), sock.GetIPAddr());
+			Assert::AreEqual(8080, sock.GetPort());
+		}
 	};
 }
