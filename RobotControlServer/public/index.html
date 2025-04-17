@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot Control Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Robot Control Interface <span class="subtitle">CSCN72050</span></h1>
+            <div class="status-panel">
+                <div class="status-indicator">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="connection-panel panel">
+                <h2>Connection Setup</h2>
+                <div class="form-group">
+                    <label for="ip-address">Robot IP Address:</label>
+                    <input type="text" id="ip-address" value="127.0.0.1" placeholder="Enter IP address">
+                </div>
+                <div class="form-group">
+                    <label for="port">Port Number:</label>
+                    <input type="number" id="port" value="5000" placeholder="Enter port number">
+                </div>
+                <button id="connect-btn" class="primary-btn">Connect to Robot</button>
+            </section>
+
+            <section class="control-panel panel">
+                <h2>Robot Control Center</h2>
+                <div class="control-settings">
+                    <div class="form-group">
+                        <label for="duration">Duration (seconds):</label>
+                        <input type="number" id="duration" value="10" min="1" max="255">
+                    </div>
+                    <div class="form-group">
+                        <label for="speed">Speed (%):</label>
+                        <input type="range" id="speed" min="80" max="100" value="90" step="1">
+                        <span id="speed-value">90%</span>
+                    </div>
+                </div>
+                
+                <div class="control-grid">
+                    <div class="direction-pad">
+                        <button id="forward-btn" class="direction-btn" data-direction="1">
+                            <svg viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                            <span>Forward</span>
+                        </button>
+                        <button id="left-btn" class="direction-btn" data-direction="4">
+                            <svg viewBox="0 0 24 24"><path d="M4 12l8-8v5h8v6h-8v5z"/></svg>
+                            <span>Left</span>
+                        </button>
+                        <button id="right-btn" class="direction-btn" data-direction="3">
+                            <svg viewBox="0 0 24 24"><path d="M20 12l-8-8v5h-8v6h8v5z"/></svg>
+                            <span>Right</span>
+                        </button>
+                        <button id="backward-btn" class="direction-btn" data-direction="2">
+                            <svg viewBox="0 0 24 24"><path d="M12 20l8-8h-5v-8h-6v8h-5z"/></svg>
+                            <span>Backward</span>
+                        </button>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="sleep-btn" class="action-btn">
+                            <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
+                            <span>Sleep Mode</span>
+                        </button>
+                        <button id="telemetry-btn" class="action-btn">
+                            <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+                            <span>Request Telemetry</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="telemetry-panel panel">
+                <h2>Telemetry Data</h2>
+                <div id="telemetry-display">
+                    <p class="no-data">No telemetry data available. Connect to robot and request telemetry.</p>
+                </div>
+            </section>
+        </main>
+
+        <div id="notification" class="notification hidden">
+            <span id="notification-message"></span>
+            <button id="notification-close">&times;</button>
+        </div>
+    </div>
+
+    <script src="/js/control.js"></script>
+</body>
+</html>

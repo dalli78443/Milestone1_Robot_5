@@ -1,0 +1,380 @@
+/* Robot Control Interface - Main Stylesheet */
+
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+    --error-color: #e74c3c;
+    --text-color: #333;
+    --background-color: #f5f5f5;
+    --panel-color: #fff;
+    --border-color: #ddd;
+    --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: var(--panel-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+/* Header Styles */
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+    font-weight: normal;
+}
+
+.status-panel {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.offline {
+    background-color: var(--error-color);
+    box-shadow: 0 0 5px var(--error-color);
+}
+
+.online {
+    background-color: var(--success-color);
+    box-shadow: 0 0 5px var(--success-color);
+}
+
+/* Panel Styles */
+main {
+    padding: 20px;
+}
+
+.panel {
+    background-color: var(--panel-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+}
+
+h2 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+input[type="text"],
+input[type="number"] {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-family: inherit;
+}
+
+input[type="range"] {
+    width: 100%;
+    margin-top: 5px;
+}
+
+#speed-value {
+    display: inline-block;
+    margin-left: 10px;
+    font-weight: bold;
+    color: var(--secondary-color);
+}
+
+/* Button Styles */
+button {
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.primary-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 4px;
+}
+
+.primary-btn:hover {
+    background-color: #2980b9;
+}
+
+.primary-btn:active {
+    transform: translateY(1px);
+}
+
+/* Control Grid */
+.control-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.control-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 15px;
+}
+
+/* Direction Pad */
+.direction-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.direction-btn {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+}
+
+.direction-btn:hover {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.direction-btn:active {
+    transform: scale(0.98);
+}
+
+.direction-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    margin-bottom: 5px;
+}
+
+#forward-btn {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#left-btn {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+#right-btn {
+    grid-column: 3;
+    grid-row: 2;
+}
+
+#backward-btn {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.action-btn {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+.action-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    margin-right: 8px;
+}
+
+#sleep-btn:hover {
+    background-color: var(--warning-color);
+}
+
+#telemetry-btn:hover {
+    background-color: var(--success-color);
+}
+
+/* Telemetry Display */
+#telemetry-display {
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 15px;
+    font-family: monospace;
+    min-height: 150px;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+}
+
+.telemetry-item {
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.telemetry-label {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.telemetry-value {
+    text-align: right;
+    color: var(--secondary-color);
+}
+
+.no-data {
+    color: #999;
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+}
+
+/* Notification */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--panel-color);
+    color: var(--text-color);
+    padding: 12px 15px;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 350px;
+    z-index: 1000;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.notification.error {
+    border-left-color: var(--error-color);
+}
+
+.notification.success {
+    border-left-color: var(--success-color);
+}
+
+.notification.warning {
+    border-left-color: var(--warning-color);
+}
+
+#notification-close {
+    background: none;
+    color: #999;
+    font-size: 1.2rem;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .status-panel {
+        margin-top: 15px;
+    }
+    
+    .control-settings,
+    .control-grid {
+        grid-template-columns: 1fr;
+    }
+}
