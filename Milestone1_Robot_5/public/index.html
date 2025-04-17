@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Robot Control Interface</title>
+  <link rel="stylesheet" href="/styles/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Robot Control Interface</h1>
+    <div class="authors">
+      <p>By Alli Demilade & Adil Farid</p>
+    </div>
+
+    <div class="connection-box">
+      <h2>Connection Settings</h2>
+      <div class="form-group">
+        <label for="ip">Robot IP Address:</label>
+        <input type="text" id="ip" placeholder="e.g., 127.0.0.1" />
+      </div>
+      <div class="form-group">
+        <label for="port">Port Number:</label>
+        <input type="number" id="port" placeholder="e.g., 9000" value="9000" />
+      </div>
+      <button id="connect-btn" onclick="connect()">Connect to Robot</button>
+    </div>
+
+    <div class="control-panel">
+      <h2>Robot Controls</h2>
+      
+      <div class="sliders">
+        <div class="slider-group">
+          <label>Duration: <span id="duration-value">10</span> seconds</label>
+          <input type="range" id="duration" min="1" max="60" value="10" oninput="updateDuration()" />
+        </div>
+        
+        <div class="slider-group">
+          <label>Speed: <span id="speed-value">90</span>%</label>
+          <input type="range" id="speed" min="80" max="100" value="90" oninput="updateSpeed()" />
+        </div>
+      </div>
+      
+      <div class="button-grid">
+        <button class="direction-btn" onclick="sendDrive('FORWARD')">Forward</button>
+        <div class="spacer"></div>
+        <button class="direction-btn" onclick="sendDrive('BACKWARD')">Backward</button>
+        <button class="direction-btn" onclick="sendDrive('LEFT')">Left</button>
+        <div class="spacer"></div>
+        <button class="direction-btn" onclick="sendDrive('RIGHT')">Right</button>
+      </div>
+      
+      <div class="action-buttons">
+        <button class="sleep-btn" onclick="sendDrive('SLEEP')">Sleep</button>
+        <button class="telemetry-btn" onclick="getTelemetry()">Get Telemetry</button>
+      </div>
+    </div>
+
+    <div class="output-panel">
+      <h2>Status & Telemetry</h2>
+      <pre id="output">Not connected to robot. Please connect first.</pre>
+    </div>
+  </div>
+
+  <script src="/scripts/main.js"></script>
+</body>
+</html>

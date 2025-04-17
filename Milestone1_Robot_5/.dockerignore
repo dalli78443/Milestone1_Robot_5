@@ -1,0 +1,47 @@
+# Build directories
+build/
+x64/
+Debug/
+Release/
+.vs/
+
+# Visual Studio files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# Compiled files
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.exp
+
+# Temporary files
+*.log
+*.tlog
+*.tmp
+*.temp
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Docker files (to avoid recursion)
+Dockerfile
+.dockerignore
+
+# Other
+README.md
+LICENSE
