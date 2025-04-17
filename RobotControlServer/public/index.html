@@ -4,96 +4,325 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Robot Control Interface</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        :root {
+            --primary-color: #FFD700;
+            --secondary-color: #FFF8DC;
+            --accent-color: #DAA520;
+            --text-color: #333;
+            --panel-color: #FFE4B5;
+            --button-hover: #B8860B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--primary-color);
+            min-height: 100vh;
+            position: relative;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--secondary-color);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .connection-panel {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--panel-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            padding: 20px;
+            background-color: var(--panel-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px 0;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        input, select {
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            background-color: var(--secondary-color);
+            width: 100%;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--button-hover);
+            box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.2);
+        }
+
+        .status {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--panel-color);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        #statusText {
+            padding: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 5px;
+            min-height: 50px;
+            word-wrap: break-word;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            padding: 15px 25px;
+            background-color: transparent;
+            margin: 20px;
+            font-size: 1.1em;
+            color: var(--text-color);
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Robot Control Interface <span class="subtitle">CSCN72050</span></h1>
-            <div class="status-panel">
-                <div class="status-indicator">
-                    <span class="status-dot offline"></span>
-                    <span class="status-text">Disconnected</span>
-                </div>
+        <h1>Robot Control Interface</h1>
+        
+        <div class="connection-panel">
+            <h2>Connection Settings</h2>
+            <div class="input-group">
+                <label for="robotIP">Robot IP Address</label>
+                <input type="text" id="robotIP" placeholder="Enter IP Address" value="127.0.0.1">
             </div>
-        </header>
+            <div class="input-group">
+                <label for="robotPort">Port Number</label>
+                <input type="number" id="robotPort" placeholder="Enter Port Number" value="5000">
+            </div>
+            <button onclick="connectToRobot()">Connect to Robot</button>
+        </div>
 
-        <main>
-            <section class="connection-panel panel">
-                <h2>Connection Setup</h2>
-                <div class="form-group">
-                    <label for="ip-address">Robot IP Address:</label>
-                    <input type="text" id="ip-address" value="127.0.0.1" placeholder="Enter IP address">
+        <div class="control-panel">
+            <div class="panel">
+                <h2>Drive Control</h2>
+                <div class="input-group">
+                    <label for="direction">Movement Direction</label>
+                    <select id="direction">
+                        <option value="0">Forward</option>
+                        <option value="1">Backward</option>
+                        <option value="2">Left</option>
+                        <option value="3">Right</option>
+                    </select>
                 </div>
-                <div class="form-group">
-                    <label for="port">Port Number:</label>
-                    <input type="number" id="port" value="5000" placeholder="Enter port number">
+                <div class="input-group">
+                    <label for="duration">Duration (seconds)</label>
+                    <input type="number" id="duration" placeholder="Enter duration in seconds" value="1" min="1">
                 </div>
-                <button id="connect-btn" class="primary-btn">Connect to Robot</button>
-            </section>
+                <div class="input-group">
+                    <label for="speed">Speed (0-100%)</label>
+                    <input type="number" id="speed" placeholder="Enter speed percentage" value="50" min="0" max="100">
+                </div>
+                <button onclick="sendDriveCommand()">Send Drive Command</button>
+            </div>
 
-            <section class="control-panel panel">
-                <h2>Robot Control Center</h2>
-                <div class="control-settings">
-                    <div class="form-group">
-                        <label for="duration">Duration (seconds):</label>
-                        <input type="number" id="duration" value="10" min="1" max="255">
-                    </div>
-                    <div class="form-group">
-                        <label for="speed">Speed (%):</label>
-                        <input type="range" id="speed" min="80" max="100" value="90" step="1">
-                        <span id="speed-value">90%</span>
-                    </div>
-                </div>
-                
-                <div class="control-grid">
-                    <div class="direction-pad">
-                        <button id="forward-btn" class="direction-btn" data-direction="1">
-                            <svg viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
-                            <span>Forward</span>
-                        </button>
-                        <button id="left-btn" class="direction-btn" data-direction="4">
-                            <svg viewBox="0 0 24 24"><path d="M4 12l8-8v5h8v6h-8v5z"/></svg>
-                            <span>Left</span>
-                        </button>
-                        <button id="right-btn" class="direction-btn" data-direction="3">
-                            <svg viewBox="0 0 24 24"><path d="M20 12l-8-8v5h-8v6h8v5z"/></svg>
-                            <span>Right</span>
-                        </button>
-                        <button id="backward-btn" class="direction-btn" data-direction="2">
-                            <svg viewBox="0 0 24 24"><path d="M12 20l8-8h-5v-8h-6v8h-5z"/></svg>
-                            <span>Backward</span>
-                        </button>
-                    </div>
-                    
-                    <div class="action-buttons">
-                        <button id="sleep-btn" class="action-btn">
-                            <svg viewBox="0 0 24 24"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42C17.99 7.86 19 9.81 19 12c0 3.87-3.13 7-7 7s-7-3.13-7-7c0-2.19 1.01-4.14 2.58-5.42L6.17 5.17C4.23 6.82 3 9.26 3 12c0 4.97 4.03 9 9 9s9-4.03 9-9c0-2.74-1.23-5.18-3.17-6.83z"/></svg>
-                            <span>Sleep Mode</span>
-                        </button>
-                        <button id="telemetry-btn" class="action-btn">
-                            <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-                            <span>Request Telemetry</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
+            <div class="panel">
+                <h2>Other Commands</h2>
+                <button onclick="sendSleepCommand()">Send Sleep Command</button>
+                <button onclick="requestTelemetry()">Request Telemetry</button>
+            </div>
+        </div>
 
-            <section class="telemetry-panel panel">
-                <h2>Telemetry Data</h2>
-                <div id="telemetry-display">
-                    <p class="no-data">No telemetry data available. Connect to robot and request telemetry.</p>
-                </div>
-            </section>
-        </main>
-
-        <div id="notification" class="notification hidden">
-            <span id="notification-message"></span>
-            <button id="notification-close">&times;</button>
+        <div class="status">
+            <h2>Status</h2>
+            <div id="statusText">Not connected</div>
         </div>
     </div>
 
-    <script src="/js/control.js"></script>
+    <div class="footer">
+        Robot 5 - Alli Demilade, Adil Farid
+    </div>
+
+    <script>
+        let isConnected = false;
+
+        async function connectToRobot() {
+            const ip = document.getElementById('robotIP').value;
+            const port = document.getElementById('robotPort').value;
+
+            try {
+                const response = await fetch('/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ip: ip,
+                        port: parseInt(port)
+                    })
+                });
+
+                const result = await response.text();
+                document.getElementById('statusText').textContent = result;
+                isConnected = response.ok;
+            } catch (error) {
+                document.getElementById('statusText').textContent = 'Connection failed: ' + error;
+                isConnected = false;
+            }
+        }
+
+        async function sendDriveCommand() {
+            if (!isConnected) {
+                document.getElementById('statusText').textContent = 'Not connected to robot';
+                return;
+            }
+
+            const direction = document.getElementById('direction').value;
+            const duration = document.getElementById('duration').value;
+            const speed = document.getElementById('speed').value;
+
+            try {
+                const response = await fetch('/telecommand', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: 'DRIVE',
+                        direction: parseInt(direction),
+                        duration: parseInt(duration),
+                        speed: parseInt(speed)
+                    })
+                });
+
+                const result = await response.text();
+                document.getElementById('statusText').textContent = 'Drive command response: ' + result;
+            } catch (error) {
+                document.getElementById('statusText').textContent = 'Command failed: ' + error;
+            }
+        }
+
+        async function sendSleepCommand() {
+            if (!isConnected) {
+                document.getElementById('statusText').textContent = 'Not connected to robot';
+                return;
+            }
+
+            try {
+                const response = await fetch('/telecommand', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: 'SLEEP'
+                    })
+                });
+
+                const result = await response.text();
+                document.getElementById('statusText').textContent = 'Sleep command response: ' + result;
+            } catch (error) {
+                document.getElementById('statusText').textContent = 'Command failed: ' + error;
+            }
+        }
+
+        async function requestTelemetry() {
+            if (!isConnected) {
+                document.getElementById('statusText').textContent = 'Not connected to robot';
+                return;
+            }
+
+            try {
+                const response = await fetch('/telementry_request', {
+                    method: 'GET'
+                });
+
+                const result = await response.text();
+                document.getElementById('statusText').textContent = 'Telemetry response: ' + result;
+            } catch (error) {
+                document.getElementById('statusText').textContent = 'Telemetry request failed: ' + error;
+            }
+        }
+    </script>
 </body>
-</html>
+</html> 
